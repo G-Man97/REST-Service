@@ -19,7 +19,6 @@ public class Department {
     @Column(name = "id")
     private int id;
 
-
     @Column(name = "name" , unique = true)
     @Pattern(regexp = "([A-Za-z_]+)", message = "The name field must contains only A-Z, a-z or underscore symbols")
     @Size(min = 2, max = 25, message = " The name field must have min 2 symbols max 25 symbols ")
@@ -39,9 +38,6 @@ public class Department {
     @JsonIgnore
 //  @JsonIgnoreProperties("department")
     private List<Employee> employee;
-
-    public Department() {
-    }
 
     public int getId() {
         return id;

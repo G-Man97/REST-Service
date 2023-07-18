@@ -1,5 +1,7 @@
 package com.gmalykhin.spring.rest.controller;
 
+import com.gmalykhin.spring.rest.dto.AverageSalaryByDepartmentDTO;
+import com.gmalykhin.spring.rest.dto.EmployeeDTO;
 import com.gmalykhin.spring.rest.entity.Department;
 import com.gmalykhin.spring.rest.entity.Employee;
 import com.gmalykhin.spring.rest.exception_handling.IncorrectFieldData;
@@ -57,22 +59,22 @@ public class MyRESTController {
     }
 
     @GetMapping("/departments/avgsalary")
-    public List<Object[]> getAvgSalaryByDept() {
+    public List<AverageSalaryByDepartmentDTO> getAvgSalaryByDept() {
         return myService.getAvgSalaryByDepartment();
     }
 
     @GetMapping("/departments/empbydept")
-    public List<Object[]> getEmpByDept() {
+    public List<EmployeeDTO> getEmpByDept() {
         return myService.getEmpByDepartment();
     }
 
     @GetMapping("employees/searchborn/{fDate}/{sDate}")
-    public List<Object[]> searchEmployee(@PathVariable String fDate, @PathVariable String sDate) throws DateTimeParseException {
+    public List<EmployeeDTO> searchEmployee(@PathVariable String fDate, @PathVariable String sDate) throws DateTimeParseException {
         LocalDate localFD = LocalDate.parse(fDate);
         LocalDate localSD = LocalDate.parse(sDate);
 
         if (localFD.isAfter(localSD)) {
-            List<Object[]> temp = myService.searchEmployee(localSD, localFD);
+            List<EmployeeDTO> temp = myService.searchEmployee(localSD, localFD);
             if (temp.isEmpty()) {
                 throw new NoSuchEntityException("No such employees found in Database");
             }

@@ -1,5 +1,6 @@
 package com.gmalykhin.spring.rest.dao;
 
+import com.gmalykhin.spring.rest.dto.AverageSalaryByDepartmentDTO;
 import com.gmalykhin.spring.rest.entity.Department;
 
 import java.time.LocalDate;
@@ -14,9 +15,5 @@ public interface DepartmentDAO {
 
     void saveDepartment(Department department);
 
-    List<Object[]> getAvgSalaryByDepartment();
-
-    List<Object[]> getEmpByDepartment();
-
-    List<Object[]> searchEmployee(LocalDate fDate, LocalDate sDate);
+    List<AverageSalaryByDepartmentDTO> getAvgSalaryByDepartment();
 }

@@ -1,5 +1,7 @@
 package com.gmalykhin.spring.rest.service;
 
+import com.gmalykhin.spring.rest.dto.AverageSalaryByDepartmentDTO;
+import com.gmalykhin.spring.rest.dto.EmployeeDTO;
 import com.gmalykhin.spring.rest.entity.Department;
 import com.gmalykhin.spring.rest.entity.Employee;
 
@@ -23,11 +25,11 @@ public interface MyService {
 
     void saveDepartment(Department department);
 
-    List<Object[]> getAvgSalaryByDepartment();
+    List<AverageSalaryByDepartmentDTO> getAvgSalaryByDepartment();
 
-    List<Object[]> getEmpByDepartment();
+    List<EmployeeDTO> getEmpByDepartment();
 
-    List<Object[]> searchEmployee(LocalDate fDate, LocalDate sDate);
+    List<EmployeeDTO> searchEmployee(LocalDate fDate, LocalDate sDate);
 
     Employee checkEmployeesDepartmentFields (Employee employee);
 

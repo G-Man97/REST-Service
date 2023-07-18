@@ -2,6 +2,8 @@ package com.gmalykhin.spring.rest.service;
 
 import com.gmalykhin.spring.rest.dao.DepartmentDAO;
 import com.gmalykhin.spring.rest.dao.EmployeeDAO;
+import com.gmalykhin.spring.rest.dto.AverageSalaryByDepartmentDTO;
+import com.gmalykhin.spring.rest.dto.EmployeeDTO;
 import com.gmalykhin.spring.rest.entity.Department;
 import com.gmalykhin.spring.rest.entity.Employee;
 import com.gmalykhin.spring.rest.exception_handling.IncorrectFieldData;
@@ -75,20 +77,20 @@ public class MyServiceImpl implements MyService {
 
     @Override
     @Transactional
-    public List<Object[]> getAvgSalaryByDepartment() {
+    public List<AverageSalaryByDepartmentDTO> getAvgSalaryByDepartment() {
         return departmentDAO.getAvgSalaryByDepartment();
     }
 
     @Override
     @Transactional
-    public List<Object[]> getEmpByDepartment() {
-        return departmentDAO.getEmpByDepartment();
+    public List<EmployeeDTO> getEmpByDepartment() {
+        return employeeDAO.getEmpByDepartment();
     }
 
     @Override
     @Transactional
-    public List<Object[]> searchEmployee(LocalDate fDate, LocalDate sDate) {
-        return departmentDAO.searchEmployee(fDate, sDate);
+    public List<EmployeeDTO> searchEmployee(LocalDate fDate, LocalDate sDate) {
+        return employeeDAO.searchEmployee(fDate, sDate);
     }
 
     @Override

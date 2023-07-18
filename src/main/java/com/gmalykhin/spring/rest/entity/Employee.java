@@ -52,9 +52,6 @@ public class Employee {
     @JsonIgnoreProperties({"minSalary", "maxSalary"})
     private Department department;
 
-    public Employee() {
-    }
-
     public int getId() {
         return id;
     }
