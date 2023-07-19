@@ -10,7 +10,7 @@
 
 Проект представляет REST Service. Используется для общения с базой данных MySQL и получения результатов запросов.
 База данных состоит из двух таблиц которые связаны OneToMany отношением: 
-- employee с полями id, name, surname birthday, salary, department_id 
+- employee с полями id, name, surname birthday, salary, department_id;
 - departments с полями id, departmentName, minSalary, maxSalary.
 
 Проект позволяет осуществлять CRUD операции над сущностями базы данных, а так же доплнительные операцие, такие как:
