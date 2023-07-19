@@ -1,9 +1,11 @@
 package com.gmalykhin.spring.rest.util;
 
 import com.gmalykhin.spring.rest.entity.Department;
+import com.gmalykhin.spring.rest.entity.EntityMarker;
 import com.gmalykhin.spring.rest.exception_handling.IncorrectFieldData;
 import org.springframework.validation.FieldError;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -13,42 +15,102 @@ public final class Utils {
         throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");
     }
 
-    private static final LocalDate LOW_BOUND_DATE = LocalDate.now().minusYears(60);
-
-    private static final LocalDate UP_BOUND_DATE = LocalDate.now().minusYears(18).plusDays(1);
-
+    // Метод превращает входную строку в строку со всеми прописными буквами,
+    // а первую букву делает заглавной
     public static String initCap (String str) {
         return str.substring(0,1).toUpperCase()
                 + str.substring(1).toLowerCase();
     }
 
-    public static void checkBirthday (LocalDate birthday) {
+    // Проверка возраста нового устраиваемого работника
+    // Возраст должен быть больше 18 лет и меньше 60 лет
+    public static void checkBirthday (LocalDate birthday) throws IncorrectFieldData {
+        final LocalDate LOW_BOUND_DATE = LocalDate.now().minusYears(60);
+        final LocalDate UP_BOUND_DATE = LocalDate.now().minusYears(18).plusDays(1);
+
         if(!(birthday.isBefore(UP_BOUND_DATE) && birthday.isAfter(LOW_BOUND_DATE))) {
             throw new IncorrectFieldData("The employee must be over 18 years old and under 60 years old");
         }
     }
 
+    // Получение строки дефолтных сообщений об ошибках валидации полей
     public static String errorsToString(List<FieldError> fieldErrors) {
-        String errorMessage = "";
+        StringBuilder errorMessage = new StringBuilder();
         for (FieldError fE: fieldErrors) {
-            errorMessage += fE.getDefaultMessage() + "\n";
+            errorMessage.append(fE.getDefaultMessage()).append("\n");
         }
-        return errorMessage;
+        return errorMessage.toString();
     }
 
-    public static void checkEmployeesSalary (Double salary, Department department) {
+    // Проверка попадания зарплаты работника в диапазон minSalary и maxSalary департамента, в котором он работает
+    public static void checkEmployeesSalary (Double salary, Department department) throws IncorrectFieldData {
         if (salary < department.getMinSalary()) {
-            throw new IncorrectFieldData("Salary must be > value of minSalary field of employee's department");
+            throw new IncorrectFieldData("The salary must be > value of the minSalary field of employee's department");
         } else if (salary > department.getMaxSalary()) {
-            throw new IncorrectFieldData("Salary must be < value of maxSalary field of employee's department");
+            throw new IncorrectFieldData("The salary must be < value of the maxSalary field of employee's department");
         }
     }
 
-    public static void checkDepartmentMinMaxSalary (Double minSalary, Double maxSalary) {
-        if ((minSalary >= maxSalary) || (maxSalary - minSalary) < 500) {
-            throw new IncorrectFieldData("The value of minSalary field must be > then the value of maxSalary field. " +
-                    "The range between these two values must be at least 500");
+    // Проверка корректности ввода minSalary и maxSalary, а так же разность между ними должна быть >= 500 и <= 7000
+    public static void checkDepartmentMinMaxSalary (Double minSalary, Double maxSalary) throws IncorrectFieldData {
+        if ((minSalary >= maxSalary) || (maxSalary - minSalary) < 500 || (maxSalary - minSalary) > 7000) {
+            throw new IncorrectFieldData("The value of the minSalary field must be > then the value of the " +
+                    "maxSalary field. The range between these two values must be between 500 and 7000");
         }
     }
 
+    // Проверка если при создании нового entity (PostMapping) какие-либо из полей были пропущены,
+    // т.е. они null, тогда приводится список пропущенных полей, которые должны быть заполнены
+    public static <T extends EntityMarker> void checkEntityFieldsIfNull(T entity) {
+
+        Field[] entityFields = entity.getClass().getDeclaredFields();
+        StringBuilder listOfNullFields = new StringBuilder();
+
+        for (Field field : entityFields) {
+
+            field.setAccessible(true);
+
+            if (!field.getType().isPrimitive()) {
+                try {
+                    if (field.get(entity) == null
+                            && !field.getName().equals("employee")) {
+
+                        listOfNullFields.append(field.getName()).append(", ");
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        if (!listOfNullFields.toString().equals("")) {
+            throw new IncorrectFieldData("You missed the required field(s): "
+                    + listOfNullFields.substring(0, listOfNullFields.length()-2));
+        }
+    }
+
+    // Проверка если при изменении entity (PutMapping) какие-либо из полей были пропущены,
+    // т.е. они null, тогда они заполняются прежним значением
+    public static <T extends EntityMarker> void checkEntityFieldsIfNullThenFill(T entity, T repoEntity) {
+
+        Field[] entityFields = entity.getClass().getDeclaredFields();
+        Field[] repoEntityFields = repoEntity.getClass().getDeclaredFields();
+
+        for (int i = 0; i < entityFields.length; i++) {
+            entityFields[i].setAccessible(true);
+            repoEntityFields[i].setAccessible(true);
+
+            if (!entityFields[i].getType().isPrimitive()) {
+                try {
+                    if (entityFields[i].get(entity) == null) {
+                        entityFields[i].set(entity, repoEntityFields[i].get(repoEntity));
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
 }

@@ -11,37 +11,42 @@ import java.time.format.DateTimeParseException;
 public class EntityGlobalExceptionHandler {
 
     @ExceptionHandler
-    public ResponseEntity<EntityIncorrectData> handleException(
-            NoSuchEntityException exception){
-        EntityIncorrectData data = new EntityIncorrectData();
-        data.setInfo(exception.getMessage());
+    public ResponseEntity<ExceptionWrapper> handleException(
+            NoSuchEntityFoundInDBException exception){
 
-        return new ResponseEntity<>(data, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ExceptionWrapper(exception.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
-    public ResponseEntity<EntityIncorrectData> handleException(
+    public ResponseEntity<ExceptionWrapper> handleException(
             Exception exception){
-        EntityIncorrectData data = new EntityIncorrectData();
-        data.setInfo(exception.getMessage() + ". Please check your input is correct!");
 
-        return new ResponseEntity<>(data, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ExceptionWrapper(exception.getMessage()
+                + ". Please check your input is correct!"), HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler
-    public ResponseEntity<EntityIncorrectData> handleException(
+    public ResponseEntity<ExceptionWrapper> handleException(
+            NumberFormatException exception){
+
+        return new ResponseEntity<>(new ExceptionWrapper("Invalid input. An integer was expected")
+                , HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ExceptionWrapper> handleException(
             DateTimeParseException exception){
-        EntityIncorrectData data = new EntityIncorrectData("Use pattern for api/employees/searchborn/1970-01-12/2001-11-07 " +
-                    "or check the existence of the date!");
 
-        return new ResponseEntity<>(data, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(
+                new ExceptionWrapper("Use pattern api/employees/search-for-employees-born-in/" +
+                "1970-01-12/2001-11-07 or api/employees/search-for-employees-born-in/1970-01-12 " +
+                        "or check the existence of the date!"), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
-    public ResponseEntity<EntityIncorrectData> handleException(
+    public ResponseEntity<ExceptionWrapper> handleException(
             IncorrectFieldData exception){
-        EntityIncorrectData data = new EntityIncorrectData();
-        data.setInfo(exception.getMessage());
 
-        return new ResponseEntity<>(data, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ExceptionWrapper(exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

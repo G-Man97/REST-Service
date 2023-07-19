@@ -1,13 +1,10 @@
 package com.gmalykhin.spring.rest.exception_handling;
 
-public class EntityIncorrectData {
+public class ExceptionWrapper {
 
     private String info;
 
-    public EntityIncorrectData() {
-    }
-
-    public EntityIncorrectData(String info) {
+    public ExceptionWrapper(String info) {
         this.info = info;
     }
 

@@ -2,17 +2,21 @@ package com.gmalykhin.spring.rest.controller;
 
 import com.gmalykhin.spring.rest.dto.AverageSalaryByDepartmentDTO;
 import com.gmalykhin.spring.rest.entity.Department;
-import com.gmalykhin.spring.rest.entity.Employee;
+import com.gmalykhin.spring.rest.exception_handling.IdFieldInPostMethod;
+import com.gmalykhin.spring.rest.exception_handling.IdFieldIsZero;
 import com.gmalykhin.spring.rest.exception_handling.IncorrectFieldData;
-import com.gmalykhin.spring.rest.exception_handling.NoSuchEntityException;
+import com.gmalykhin.spring.rest.exception_handling.NoSuchEntityFoundInDBException;
 import com.gmalykhin.spring.rest.service.MyService;
-import com.gmalykhin.spring.rest.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+
+import static com.gmalykhin.spring.rest.util.Utils.*;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -27,119 +31,113 @@ public class DepartmentController {
 
     @GetMapping
     public List<Department> showAllDepartments() {
-        return myService.getAllDepartments();
+
+        List<Department> allDepartments = myService.getAllDepartments();
+
+        if (allDepartments.isEmpty()) {
+            throw new NoSuchEntityFoundInDBException();
+        }
+
+        return allDepartments;
     }
 
     @GetMapping("/{id}")
-    public Department getDepartment(@PathVariable int id) {
-        Department department = myService.getDepartment(id);
+    public Department getDepartment(@PathVariable String id) throws NumberFormatException {
+        int departmentId = Integer.parseInt(id.trim());
+        Department department = myService.getDepartment(departmentId);
 
         if (department == null) {
-            throw new NoSuchEntityException(id);
+            throw new NoSuchEntityFoundInDBException(departmentId);
         }
         return department;
     }
 
     @GetMapping("/average-salary-by-department")
     public List<AverageSalaryByDepartmentDTO> getAvgSalaryByDept() {
-        return myService.getAvgSalaryByDepartment();
+
+        List<AverageSalaryByDepartmentDTO> result = myService.getAvgSalaryByDepartment();
+
+        if (result.isEmpty()) {
+            throw new NoSuchEntityFoundInDBException();
+        }
+        return result;
     }
 
     @PostMapping
-    public Department addNewDepartment(@Valid @RequestBody Department department, BindingResult bindingResult) {
+    public ResponseEntity<Department> addNewDepartment(@Valid @RequestBody Department department, BindingResult bindingResult) {
+
         if (department.getId() != 0) {
-            throw new IncorrectFieldData("No need to write id field for POST method. Please write JSON without id field");
+            throw new IdFieldInPostMethod();
         }
+
+        checkEntityFieldsIfNull(department);
 
         if (bindingResult.hasErrors()) {
-            throw new IncorrectFieldData(Utils.errorsToString(bindingResult.getFieldErrors()));
+            throw new IncorrectFieldData(errorsToString(bindingResult.getFieldErrors()));
         }
 
-        Utils.checkDepartmentMinMaxSalary(department.getMinSalary(), department.getMaxSalary());
+        myService.existenceOfTheDepartmentWithSuchNameInDB(department.getDepartmentName());
+        checkDepartmentMinMaxSalary(department.getMinSalary(), department.getMaxSalary());
         department.setDepartmentName(department.getDepartmentName().toUpperCase());
+        myService.saveDepartment(department);
 
-        try {
-            myService.saveDepartment(department);
-            return department;
-        } catch (Exception e) {
-            throw new IncorrectFieldData("Value of departmentName field must be unique");
-        }
+        return new ResponseEntity<>(department, HttpStatus.CREATED);
     }
 
     @PutMapping
     public String updateDepartment(@Valid @RequestBody Department department, BindingResult bindingResult) {
 
         int id = department.getId();
-        boolean minSalaryFlag = true, maxSalaryFlag = true;
 
-        if (id == 0) {
-            throw new NoSuchEntityException("To edit department you need write department id. Id can not be 0");
+        if (id <= 0) {
+            throw new IdFieldIsZero(department);
         }
+
         if (myService.getDepartment(id) == null) {
-            throw new NoSuchEntityException(department.getId());
+            throw new NoSuchEntityFoundInDBException(department.getId());
         }
 
         Department repoDepartment = myService.getDepartment(id);
 
-        if (department.getDepartmentName() == null) {
-            department.setDepartmentName(repoDepartment.getDepartmentName());
-        }
-        if (department.getMinSalary() == null) {
-            department.setMinSalary(repoDepartment.getMinSalary());
-            minSalaryFlag = false;
-        }
-        if (department.getMaxSalary() == null) {
-            department.setMaxSalary(repoDepartment.getMaxSalary());
-            maxSalaryFlag = false;
-        }
+        checkEntityFieldsIfNullThenFill(department, repoDepartment);
 
         if (bindingResult.hasErrors()) {
-            throw new IncorrectFieldData(Utils.errorsToString(bindingResult.getFieldErrors()));
+            throw new IncorrectFieldData(errorsToString(bindingResult.getFieldErrors()));
         }
-
-        if (minSalaryFlag || maxSalaryFlag) {
-            Utils.checkDepartmentMinMaxSalary(department.getMinSalary(), department.getMaxSalary());
-        }
-
         department.setDepartmentName(department.getDepartmentName().toUpperCase());
-        String info = "The department was successfully updated.";
+
+        if (!department.getDepartmentName().equals(repoDepartment.getDepartmentName())) {
+            myService.existenceOfTheDepartmentWithSuchNameInDB(department.getDepartmentName());
+        }
+        checkDepartmentMinMaxSalary(department.getMinSalary(), department.getMaxSalary());
+
+        String info = "The department was successfully updated";
 
         if (!(department.equals(repoDepartment))) {
-            myService.saveDepartment(department);
 
             if (Double.compare(repoDepartment.getMinSalary(), department.getMinSalary()) != 0
                     || Double.compare(repoDepartment.getMaxSalary(), department.getMaxSalary()) != 0) {
 
-                List<Employee> empsInDept = myService.employeesInDepartment(id);
-                minSalaryFlag = false;
-                maxSalaryFlag = false;
-
-                for (Employee e : empsInDept) {
-                    if (e.getSalary() < department.getMinSalary()) {
-                        e.setSalary(department.getMinSalary());
-                        myService.saveEmployee(e);
-                        minSalaryFlag = true;
-                    } else if (e.getSalary() > department.getMaxSalary()) {
-                        e.setSalary(department.getMaxSalary());
-                        myService.saveEmployee(e);
-                        maxSalaryFlag = true;
-                    }
-                }
-                if (minSalaryFlag || maxSalaryFlag) {
-                    info += " One or more employees had their salary changed in accordance " +
+                if (myService.checkEmpsSalaryIfMinOrMaxSalaryWasEdited(department)) {
+                    info += ". One or more employees had their salary changed in accordance " +
                             "with the minimum and maximum salaries for this department";
                 }
             }
+            myService.saveDepartment(department);
         }
         return info;
     }
 
     @DeleteMapping("/{id}")
-    public String deleteDepartment(@PathVariable int id) {
-        if (myService.getDepartment(id) == null) {
-            throw new NoSuchEntityException(id);
+    public String deleteDepartment(@PathVariable String id) throws NumberFormatException {
+
+        int intId = Integer.parseInt(id.trim());
+        Department department = myService.getDepartment(intId);
+
+        if (department == null) {
+            throw new NoSuchEntityFoundInDBException(intId);
         }
-        myService.deleteDepartment(id);
+        myService.deleteDepartment(intId);
         return "Department with ID = " + id + " was successfully deleted";
     }
 }

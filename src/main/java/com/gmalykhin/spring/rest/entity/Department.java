@@ -12,7 +12,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "departments")
-public class Department {
+public class Department extends EntityMarker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,16 +25,16 @@ public class Department {
     private String departmentName;
 
     @Column(name = "min_salary")
-    @DecimalMin(value = "500", message = " The minSalary field must have a minimum value of 500 ")
-    @DecimalMax(value = "1000000", inclusive = false, message = " The minSalary field must have a minimum value of 999999.99 ")
+    @DecimalMin(value = "500", message = " The minSalary field must have a min value of 500 ")
+    @DecimalMax(value = "1000000", inclusive = false, message = " The minSalary field must have a max value of 999999.99 ")
     private Double minSalary;
 
     @Column(name = "max_salary")
-    @DecimalMin(value = "500", message = " The maxSalary field must have a minimum value of 500 ")
-    @DecimalMax(value = "1000000", inclusive = false, message = " The maxSalary field must have a minimum value of 999999.99 ")
+    @DecimalMin(value = "500", message = " The maxSalary field must have a min value of 500 ")
+    @DecimalMax(value = "1000000", inclusive = false, message = " The maxSalary field must have a max value of 999999.99 ")
     private Double maxSalary;
 
-    @OneToMany(cascade = CascadeType.ALL , mappedBy = "department", orphanRemoval=true)
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH}, mappedBy = "department")
     @JsonIgnore
 //  @JsonIgnoreProperties("department")
     private List<Employee> employee;
@@ -91,6 +91,6 @@ public class Department {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, departmentName, minSalary, maxSalary);
+        return Objects.hash(departmentName, minSalary, maxSalary);
     }
 }

@@ -27,11 +27,15 @@ public interface MyService {
 
     List<AverageSalaryByDepartmentDTO> getAvgSalaryByDepartment();
 
-    List<EmployeeDTO> getEmpByDepartment();
+    List<EmployeeDTO> getAllEmployeesByDepartments();
 
     List<EmployeeDTO> searchEmployee(LocalDate fDate, LocalDate sDate);
+
+    void existenceOfTheDepartmentWithSuchNameInDB(String departmentName);
 
     Employee checkEmployeesDepartmentFields (Employee employee);
 
     List<Employee> employeesInDepartment (int departmentId);
+
+    boolean checkEmpsSalaryIfMinOrMaxSalaryWasEdited(Department department);
 }

@@ -17,7 +17,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "employees")
-public class Employee {
+public class Employee extends EntityMarker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,8 +42,8 @@ public class Employee {
     private LocalDate birthday;
 
     @Column(name = "salary")
-    @DecimalMin(value = "500", message = " The salary field must have a minimum value of 500 ")
-    @DecimalMax(value = "1000000", inclusive = false, message = " The salary field must have a minimum value of 999999.99 ")
+    @DecimalMin(value = "500", message = " The salary field must have a min value of 500 ")
+    @DecimalMax(value = "1000000", inclusive = false, message = " The salary field must have a max value of 999999.99 ")
     private Double salary;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
