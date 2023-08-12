@@ -17,7 +17,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "employees")
-public class Employee extends EntityMarker {
+public class Employee extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

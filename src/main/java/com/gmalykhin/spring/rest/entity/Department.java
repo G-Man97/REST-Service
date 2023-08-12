@@ -12,7 +12,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "departments")
-public class Department extends EntityMarker {
+public class Department extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
