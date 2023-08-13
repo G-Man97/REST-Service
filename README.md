@@ -26,5 +26,4 @@
 - Spring
 - Spring Hibernnate
 - Spring MVC
-- Spring ORM
 - JACKSON
